@@ -1,0 +1,266 @@
+---
+title: "Simple Linear Regression using R"
+author: "Bett Kipkemoi"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+
+Simple Linear Regression is a very straightforward simple linear approach for predicting a quantitative response y on the basis of a single predictor variable x. It assumes that there is approximately a linear relationship between x and y. In this handout, the Butler Trucking Company dataset (Camm textbook example) is used to perform Simple Linear Regression analysis using R. 
+
+
+```{r }
+
+setwd("C:/Users/Bett/Downloads")
+DJI<-read.csv("DJIAS_P500.csv")
+print(DJI)
+
+#Create a Scatter Plot 
+plot(DJI$DJIA~DJI$S.P.500, pch=19, col="blue", cex=1.5, xlab="DJIA - x", ylab="S & P. 500 - y", frame.plot = FALSE)
+```
+From the scatterplot above, it indicates a correlation between DJIA and S&P 500.
+
+
+
+Now let's create a simple regression model using Miles traveled as a **predictor (independent)** variable and travel Time as a **response (dependent)** variable. 
+
+```{r}
+
+#Simple Linear Regression Model
+linear_mod<-lm(S.P.500~DJIA, data=DJI) # Here the dependent variable, Time (which we are trying to predict) comes first then comes the independent variable.
+summary(linear_mod) # this is the regression model output
+```
+The expected mortgage is negatively predicted by mortgage by 669.02124. With a unit increase in the rent, the mortgage increases by 0.15727 units.
+
+
+### Adding best fit line to the scatter plot
+
+```{r}
+#Scatter Plot with best fit line
+
+plot(DJI$S.P.500~DJI$DJIA, pch=19, col="blue", xlab="S&P 500 - x", ylab="DJIA - y", frame.plot = FALSE)
+abline(lm(DJI$S.P.500~DJI$DJIA), col="red", lwd=3) #Adds best fit line to the plot
+
+#Adding R-squared value to the scatter plot
+
+#Option 1: Reading the output and adding the R-squared value on the plot
+
+text(81, 10, "R-squared = 0.9486") # Refer page 129 of Stowell for selecting the position of text on the plot
+
+#Option 2: Letting R fill out the R-squared value on the plot  
+
+summ<-summary(linear_mod) #we are saving the regression model output in object summ, then we can use it to call the value we want. 
+
+rsq<-round((summ$r.squared), digits=4) #Here, we are calling the adj.r.squared value from the summ object, round it to 4 digits and then save the value as rsq
+
+text(81, 10, paste0("R-squared = ", rsq)) # we paste the rsq on the plot
+```
+
+### Interpretation of Simple Linear Regression output
+
+```{r }
+summary(linear_mod)
+
+```
+
+The summary(linear_mod) command gives us p values and standard errors for the coefficients, as well as the R2 statistic and F-statistic for the model.
+
+The value of R-squared is a measure of the goodness of fit of the estimated regression equation. The **Multiple R-squared:  0.6641** indicates that using Miles traveled as independent variable, our model explains about 66.41% variability in Travel time. **In other words, 66.41% of the variability in the values in the travel time in the sample can be explained by the linear relationship between the miles traveled and travel time.**
+
+The **intercept** is **1.2739**. It is the estimated value of the dependent variable y when the independent variable x is equal to 0. In other words, if the Miles traveled for a driving assignment is 0 miles then the mean travel time would be about 1.2739 hours (it may include the the time needed to prepare, load, and unload the vehicle, which is required for all trips regardless of distance). 
+
+The **slope** of independent variable Miles traveled is **0.06783**. It means every one mile increase in travel, the mean travel time would increase by 0.06783 hour (approximately 4 minutes). 
+
+The **residuals** are the difference between the actual response values (Time) and model predicted response values (Time). We will discuss about residuals in the following sections.
+
+Now lets, write our simple linear regression equation using the intercept and coefficient values:
+
+**mean travel Time in hours = 1.27391 + 0.06783(Miles Traveled)** 
+
+If we know the Miles Traveled, we can use this equation to predict the travel time. For, example if the miles traveled is 72 then the predicted travel time (in hours) is:
+
+```{r}
+travel_time<-1.27391 + 0.06783*(72) ## Simple Linear Regression equation
+travel_time
+
+```
+
+### Testing Simple Linear Regression Parameter
+
+We can test to determine whether there is a statistically significant relationship between the dependent variable y and independent variable x using a t-test.
+
+Considering our example, we can perform a t-test to determine if there is a statistically significant relationship travel time (y) and miles travelled (x). The corresponding null and alternative hypotheses are as follows:
+
+
+H0: $\beta_{1}$ = 0 (Meaning: If $\beta_{1}$ is zero, then the dependent variable y does not change when the independent variable x changes, and there is no linear relationship between y and x)
+
+Ha: $\beta_{1}$ $\neq$ 0 (Meaning: If $\beta_{1}$ is not zero, there is a linear relationship between the dependent variable y and the independent variable x)
+
+
+Let's look at the regression model output again:
+
+```{r }
+summary(linear_mod)
+
+```
+
+
+The p value of the t-test for S&P 500 variable (Pr(>|t|) column on the regression output) is 0.000198. The three stars after 0.000198 indicates that this p value is statistically significant at the 0.01 level (look at the Signif. codes row on the regression output). We can also interpret this as: the p value (0.000198) is less than the alpha level of 0.01 (confidence level 99%). Therefore, we reject the null hypothesis and conclude that there is statistically significant relationship between DJIA and S&P 500. 
+
+
+The F-statistic can be used to test if the overall model is statistically significant or not. On the output, F-statistic is 15.81 on 1 and 8 DF. The p-value associated with the F-statistic is 0.000198. It is less than the alpha level of 0.01, indicating the model is statistically significant. We will learn more about these tests in multiple regression model in the next module. 
+
+We also can execute each of these hypothesis tests through confidence intervals. A confidence interval for a regression parameter $\beta_{1}$ is an estimated interval believed to contain the true value of $\beta_{1}$ at some level of confidence. when building a 95% confidence interval, we can expect that if we took similar-sized samples from the same population using identical sampling techniques, the corresponding interval estimates would contain the true value of $\beta_{1}$ for 95% of the samples (Camm textbook page 353).
+
+To test that $\beta_{1}$ is zero (i.e., there is no linear relationship between x and y) at some predetermined level of significance (say 0.05), first build a confidence interval at the (1 - 0.05) 100% confidence level. If the resulting confidence interval does not contain zero, we conclude that $\beta_{1}$ differs from zero at the predetermined level of significance Camm textbook page 353).
+
+Let's build the confidence interval using confint command.
+
+```{r}
+
+confint(linear_mod, level = 0.95)# computes a confidence interval for the coefficient estimates
+```
+
+For independent variable, Miles, the 95% confidence interval is [0.02849572 to 0.1071565]. This confidence interval does not contain zero. Therefore, we can conclude that $\beta_{1}$ differs from zero at the 0.05 level of significance. 
+
+We also see that the confidence interval estimate for our intercept $\beta_{0}$ [-1.95620962 to 4.5040357] does include zero, so we conclude that $\beta_{0}$ does not differ from zero at the 0.05 level of significance.
+
+
+### Attributes of simple linear regression model
+
+We can use the attributes() function in order to find out what other pieces of information are stored in the linear model.
+
+```{r}
+
+attributes(linear_mod)# This prints the name of various attributes calculated in the linear model
+
+
+linear_mod$coefficients # intercept and coefficient of Mile we looked on the regression model output
+
+linear_mod$fitted.values #These are the predicted values calculated by using the regression equation we just developed: Travel Time (hours)=1.27391 + 0.06783(Miles Traveled)
+
+linear_mod$residuals #These are the errors (actual travel time - model predicted travel time)
+
+
+#Now let's add the predicted time and residual error values to the table 
+pred_time<-linear_mod$fitted.values
+residual_error<-linear_mod$residuals
+
+DJI_pred<-cbind(DJI,pred_time,residual_error) # the command cbind adds these two columns to the butler table
+print(DJI_pred)
+
+```
+
+
+**Assessing the Fit (or Accuracy) of the Simple Linear Regression Model (refer Camm textbook section 7.3 on page 337 for interpretation of these terms)** 
+
+Once we develop the regression model, it is natural to want to quantify the extent to which the model fits the data. The quality of a linear regression fit is typically assessed using two related quantities: the residual standard error (RSE) and the R-Squared (R2) statistic. We can find the values these terms on the Linear regression output or we can calculate them using R.
+
+```{r }
+summary(linear_mod)
+
+```
+
+Linear regression output shows the residual standard error (RSE) of our regression model is 1.002. In other words, actual travel Time deviates from the true regression line by approximately 1.002 hours, on average.
+
+```{r}
+
+#sum of squares due to error (SSE) 
+
+SSE<-sum(((DJI$S.P.500)-(linear_mod$fitted.values))^2) # It measures the total sum of squared error (8.028696 hours squared) in using our regression equation to predict travel time for the driving assignments in the sample.
+SSE
+
+n<-10 #number of observations
+RSE<-sqrt((1/(n-2))*SSE) #We can find this value on regression output
+RSE
+
+#TOTAL SUM OF SQUARES, SST 
+
+SST<-sum((DJI$S.P.500 - mean(DJI$S.P.500))^2) #It measures the total sum of squared error (23.9 hours squared) in using the mean of y to predict travel time for all the driving assignments in the sample. 
+SST
+
+#SUM OF SQUARES DUE TO REGRESSION, SSR
+
+SSR<-sum((linear_mod$fitted.values - mean(DJI$S.P.500))^2)
+SSR
+
+
+#sum of squares due to error (SSE): another formula 
+
+SSE<-SST-SSR
+SSE
+
+
+# The COEFFICIENT OF DETERMINATION (R-SQUARED, we also get this value on the linear model regression model output)
+
+RSQ<-SSR/SST #Please see the interpretation of E-squared in the previous section.
+RSQ
+```
+
+### Assumptions of Simple Linear Regression
+
+The inferences from the simple linear regression are valid when the followin assumptions about the errors or residuals are satisfied.
+
+**1.** The errors (residuals) are normally distributed with a mean of 0 and a constant variance.
+
+**2.** The error values are statistically independent.
+
+
+We can use residual plot and normal probability plot to validate the assumptions about the error term in the regression model. 
+
+Let's plot:
+
+a.Residual values against the predicted values of travel time to see if the assumptions about the error values are violated.
+
+b.Normal probability plot of residuals (Refer Stowell textbook page 104 for interpretation) to check if the residuals come from a normal distribution
+
+
+```{r}
+#Residual Plot Against Predicted Travel Time
+plot(linear_mod$fitted.values, linear_mod$residuals, xlab="Predicted Travel Time", ylab="Residuals", col="red",pch=19, main="Residual Plot Against Predicted Travel Time")
+abline(h=0, lty=3) #Horizontal line at 0 residual value (y-axis), lyt=3 creates dashed line
+```
+
+Camm textbook (page 346) provides an excellent explanation on how to analyze a residual plot to see if one or more assumptions are violated. Please take a look at that. 
+
+
+Let's see if the residuals of our linear regression model are normally distributed or not using a normal probability plot.
+
+```{r}
+#Normal Probability Plot of Residual
+std_residual<-rstandard(linear_mod)
+qqnorm(std_residual,xlab="Normal Scores", ylab="Residuals", col="magenta3",  pch=19, main="Normal Probability Plot of Residual" )
+qqline(std_residual)
+
+```
+
+
+The distribution of the residuals are considered perfectly normal if the data points fall on the straight line on the Normal Q-Q Plot. On the plot, it can be seen that the data points are close to the straight line (although not all points are exactly on the line). We can assume that the residuals are very close to normal distribution. Let's test this using Shapiro-Wilk Test (Refer Stowell textbook 67 for interpretation). Shapiro-Wilk Test can be used to determine whether a data has been drawn from a normal distribution. The data distribution is normal if the p value of the Shapiro-Wilk Test is **more than 0.05** (level of alpha). 
+
+**Hypotheses for Shapiro-Wilk Test of Normality**
+
+**Null Hypothesis (H0):** The observed distribution fits the normal distribution
+
+**Alternative Hypothesis (Ha):** The observed distribution does not fit the normal distribution
+
+If the p-value of the test is **more than the alpha level of 0.05**, we fail to reject the null nypothesis and conclude that the observed distribution fits the normal distribution.
+
+
+```{r}
+shapiro.test(linear_mod$residuals)
+
+```
+
+After looking at the output p value (0.6245), do you think that the residuals of our regression model are normally distributed? I am going to say yes! 
+
+
+We will learn more about these assumptions next in multiple regression model. 
+
+
